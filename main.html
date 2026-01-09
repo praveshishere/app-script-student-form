@@ -1,0 +1,236 @@
+<div class="max-w-2xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-semibold text-gray-900 mb-2">
+      Student Registration
+    </h1>
+    <p class="text-gray-600">Please fill in your details below</p>
+  </div>
+
+  <!-- Form Card -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+    <form id="studentForm">
+      <!-- First Name -->
+      <div class="mb-6">
+        <label
+          for="firstName"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          First Name <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="firstName"
+          name="firstName"
+          required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          placeholder="Enter first name"
+        />
+      </div>
+
+      <!-- Last Name -->
+      <div class="mb-6">
+        <label
+          for="lastName"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Last Name <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="lastName"
+          name="lastName"
+          required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          placeholder="Enter last name"
+        />
+      </div>
+
+      <!-- Email -->
+      <div class="mb-6">
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+          Email <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          placeholder="your.email@example.com"
+        />
+      </div>
+
+      <!-- Course -->
+      <div class="mb-6">
+        <label
+          for="course"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Course <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="course"
+          name="course"
+          required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white"
+        >
+          <option value="">Select a course</option>
+          <option value="Computer Science">Computer Science</option>
+          <option value="Business Administration">
+            Business Administration
+          </option>
+          <option value="Engineering">Engineering</option>
+          <option value="Mathematics">Mathematics</option>
+          <option value="Physics">Physics</option>
+          <option value="Chemistry">Chemistry</option>
+          <option value="Biology">Biology</option>
+          <option value="Economics">Economics</option>
+        </select>
+      </div>
+
+      <!-- Date of Birth -->
+      <div class="mb-8">
+        <label for="dob" class="block text-sm font-medium text-gray-700 mb-2">
+          Date of Birth <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="date"
+          id="dob"
+          name="dob"
+          required
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+        />
+      </div>
+
+      <!-- Hidden field for edit mode -->
+      <input type="hidden" id="editRowId" name="editRowId" value="" />
+
+      <!-- Buttons -->
+      <div class="flex gap-3">
+        <button
+          type="submit"
+          id="submitBtn"
+          class="flex-1 bg-gray-900 text-white py-2.5 px-6 rounded-lg font-medium hover:bg-gray-800 transition duration-200"
+        >
+          Submit
+        </button>
+        <button
+          type="button"
+          onclick="navigateToDashboard()"
+          class="flex-1 bg-gray-100 text-gray-700 py-2.5 px-6 rounded-lg font-medium hover:bg-gray-200 transition duration-200"
+        >
+          View Dashboard
+        </button>
+      </div>
+    </form>
+
+    <!-- Success Message -->
+    <div
+      id="successMessage"
+      class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg"
+    >
+      <p class="text-green-800 text-sm font-medium">
+        ✓ Form submitted successfully!
+      </p>
+    </div>
+
+    <!-- Error Message -->
+    <div
+      id="errorMessage"
+      class="hidden mt-6 p-4 bg-red-50 border border-red-200 rounded-lg"
+    >
+      <p class="text-red-800 text-sm font-medium">
+        ✗ <span id="errorText"></span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Form submission
+  document
+    .getElementById("studentForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const formData = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        email: document.getElementById("email").value,
+        course: document.getElementById("course").value,
+        dob: document.getElementById("dob").value,
+        studentId: document.getElementById("editRowId").value,
+      };
+
+      // Hide previous messages
+      document.getElementById("successMessage").classList.add("hidden");
+      document.getElementById("errorMessage").classList.add("hidden");
+
+      // Disable submit button
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+
+      // Call Google Apps Script function
+      const functionName = formData.studentId ? "updateStudent" : "addStudent";
+
+      runGoogleScript(functionName, formData)
+        .then((response) => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = formData.studentId ? "Update" : "Submit";
+
+          if (response.success) {
+            document
+              .getElementById("successMessage")
+              .classList.remove("hidden");
+
+            // Reset form and navigate to dashboard after 1.5 seconds
+            setTimeout(() => {
+              document.getElementById("studentForm").reset();
+              document.getElementById("editRowId").value = "";
+              document.getElementById("submitBtn").textContent = "Submit";
+              document.querySelector("#mainPage h1").textContent =
+                "Student Registration";
+              document.getElementById("successMessage").classList.add("hidden");
+              navigateToDashboard();
+            }, 1500);
+          } else {
+            document.getElementById("errorText").textContent =
+              response.message || "An error occurred";
+            document.getElementById("errorMessage").classList.remove("hidden");
+          }
+        })
+        .catch((error) => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = formData.studentId ? "Update" : "Submit";
+          document.getElementById("errorText").textContent =
+            error.message || "Failed to submit form";
+          document.getElementById("errorMessage").classList.remove("hidden");
+        });
+    });
+
+  function toDateInputValue(isoString) {
+    return isoString?.slice(0, 10); // fastest & safest
+  }
+
+  function fillForm(formData) {
+    document.getElementById("firstName").value = formData.firstName;
+    document.getElementById("lastName").value = formData.lastName;
+    document.getElementById("email").value = formData.email;
+    document.getElementById("course").value = formData.course;
+    document.getElementById("dob").value = toDateInputValue(formData.dob);
+    document.getElementById("editRowId").value = formData.studentId;
+
+    // Update button text and heading
+    document.getElementById("submitBtn").textContent = "Update";
+    document.querySelector("#mainPage h1").textContent = "Edit Student Record";
+  }
+
+  function clearForm() {
+    document.getElementById("studentForm").reset();
+    document.getElementById("editRowId").value = "";
+    document.getElementById("submitBtn").textContent = "Submit";
+    document.querySelector("#mainPage h1").textContent = "Student Registration";
+  }
+</script>

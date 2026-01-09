@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .page {
+        display: none;
+      }
+      .page.active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen py-8 px-4">
+    <!-- Main Form Page -->
+    <div id="mainPage" class="page">
+      <?!= include('main') ?>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="page active">
+      <?!= include('dashboard') ?>
+    </div>
+
+    <script>
+      // Navigation functions
+      function showPage(pageName) {
+        // Hide all pages
+        document.querySelectorAll(".page").forEach((page) => {
+          page.classList.remove("active");
+        });
+
+        // Show requested page
+        const pageElement = document.getElementById(pageName + "Page");
+        if (pageElement) {
+          pageElement.classList.add("active");
+        }
+      }
+
+      // Make navigation functions globally available
+      window.navigateToMain = function () {
+        showPage("main");
+        clearForm();
+      };
+
+      window.navigateToDashboard = function () {
+        showPage("dashboard");
+        // Reload students when navigating to dashboard
+        if (typeof loadStudents === "function") {
+          loadStudents();
+        }
+      };
+
+      window.navigateToEdit = function (studentData) {
+        showPage("main");
+        // Populate form with student data
+        if (studentData) {
+          fillForm(studentData);
+        }
+      };
+
+      function runGoogleScript(fn, ...data) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            [fn](...data);
+        });
+      }
+    </script>
+  </body>
+</html>

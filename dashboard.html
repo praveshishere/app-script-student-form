@@ -1,0 +1,302 @@
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-semibold text-gray-900 mb-2">
+        Student Dashboard
+      </h1>
+      <p class="text-gray-600">Manage all student registrations</p>
+    </div>
+    <button
+      onclick="navigateToMain()"
+      class="bg-gray-900 text-white py-2.5 px-6 rounded-lg font-medium hover:bg-gray-800 transition duration-200"
+    >
+      + Add New Student
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div
+    id="loadingState"
+    class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center"
+  >
+    <div
+      class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
+    ></div>
+    <p class="mt-4 text-gray-600">Loading students...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div
+    id="emptyState"
+    class="hidden bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center"
+  >
+    <svg
+      class="mx-auto h-12 w-12 text-gray-400"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      ></path>
+    </svg>
+    <h3 class="mt-4 text-lg font-medium text-gray-900">No students found</h3>
+    <p class="mt-2 text-gray-600">Get started by adding your first student.</p>
+    <button
+      onclick="navigateToMain()"
+      class="mt-6 inline-block bg-gray-900 text-white py-2.5 px-6 rounded-lg font-medium hover:bg-gray-800 transition duration-200"
+    >
+      Add Student
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div
+    id="tableContainer"
+    class="hidden bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+  >
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              First Name
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Last Name
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Email
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Course
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Date of Birth
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
+          <!-- Rows will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div
+    id="deleteModal"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  >
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">Delete Student</h3>
+      <p class="text-gray-600 mb-6">
+        Are you sure you want to delete this student record? This action cannot
+        be undone.
+      </p>
+      <div class="flex gap-3">
+        <button
+          id="cancelDelete"
+          class="flex-1 bg-gray-100 text-gray-700 py-2.5 px-6 rounded-lg font-medium hover:bg-gray-200 transition duration-200"
+        >
+          Cancel
+        </button>
+        <button
+          id="confirmDelete"
+          class="flex-1 bg-red-600 text-white py-2.5 px-6 rounded-lg font-medium hover:bg-red-700 transition duration-200"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let students = [];
+  let deleteRowId = null;
+
+  // Load students on page load
+  window.addEventListener("load", function () {
+    loadStudents();
+  });
+
+  window.addEventListener("error", (error) => {
+    alert(error.message);
+    console.error(error);
+  });
+
+  async function loadStudents() {
+    const emptyState = document.getElementById("emptyState");
+    const tableContainer = document.getElementById("tableContainer");
+    const loadingState = document.getElementById("loadingState");
+
+    emptyState.classList.add("hidden");
+    tableContainer.classList.add("hidden");
+    loadingState.classList.remove("hidden");
+
+    try {
+      const data = await runGoogleScript("getStudents");
+      students = JSON.parse(data);
+
+      if (students.length === 0) {
+        emptyState.classList.remove("hidden");
+        return;
+      }
+
+      tableContainer.classList.remove("hidden");
+
+      renderTable();
+    } catch (error) {
+      console.error("Error loading students:", error);
+      loadingState.innerHTML = `
+                        <p class="text-red-600">Error loading students: ${error.message}</p>
+                        <button onclick="loadStudents()" class="mt-4 bg-gray-900 text-white py-2.5 px-6 rounded-lg font-medium hover:bg-gray-800 transition duration-200">
+                            Retry
+                        </button>
+                    `;
+    } finally {
+      loadingState.classList.add("hidden");
+    }
+  }
+
+  function renderTable() {
+    const emptyState = document.getElementById("emptyState");
+    const tableContainer = document.getElementById("tableContainer");
+    const tableBody = document.getElementById("tableBody");
+
+    // Clear existing rows
+    tableBody.innerHTML = "";
+
+    // Create rows using DOM nodes
+    students.forEach((student) => {
+      const row = document.createElement("tr");
+      row.className = "hover:bg-gray-50 transition";
+
+      // First Name
+      row.append(
+        createTableCell(student.firstName, "text-gray-900"),
+        createTableCell(student.lastName, "text-gray-900"),
+        createTableCell(student.email, "text-gray-600"),
+        createTableCell(student.course, "text-gray-900"),
+        createTableCell(student.dob.slice(0, 10), "text-gray-600")
+      );
+
+      // Actions
+      const actionsCell = document.createElement("td");
+      actionsCell.className = "px-6 py-4 whitespace-nowrap text-sm font-medium";
+
+      // Edit Button
+      const editBtn = document.createElement("button");
+      editBtn.className = "text-blue-600 hover:text-blue-800 mr-4 transition";
+      editBtn.textContent = "Edit";
+      editBtn.addEventListener("click", () => editStudent(student.studentId));
+
+      // Delete Button
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "text-red-600 hover:text-red-800 transition";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.addEventListener("click", () =>
+        showDeleteModal(student.studentId)
+      );
+
+      actionsCell.appendChild(editBtn);
+      actionsCell.appendChild(deleteBtn);
+      row.appendChild(actionsCell);
+
+      tableBody.appendChild(row);
+    });
+  }
+
+  function createTableCell(text, colorClass) {
+    const cell = document.createElement("td");
+    cell.className = `px-6 py-4 whitespace-nowrap text-sm ${colorClass}`;
+    cell.textContent = text; // textContent automatically escapes HTML
+    return cell;
+  }
+
+  function editStudent(studentId) {
+    const student = students.find((student) => student.studentId === studentId);
+    if (!student) {
+      console.error("Student not found");
+      return;
+    }
+
+    navigateToEdit({
+      studentId: student.studentId,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      email: student.email,
+      course: student.course,
+      dob: student.dob,
+    });
+  }
+
+  function showDeleteModal(studentId) {
+    deleteRowId = studentId;
+    document.getElementById("deleteModal").classList.remove("hidden");
+  }
+
+  function hideDeleteModal() {
+    deleteRowId = null;
+    document.getElementById("deleteModal").classList.add("hidden");
+  }
+
+  document
+    .getElementById("cancelDelete")
+    .addEventListener("click", hideDeleteModal);
+
+  document
+    .getElementById("confirmDelete")
+    .addEventListener("click", function () {
+      if (deleteRowId) {
+        const confirmBtn = document.getElementById("confirmDelete");
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "Deleting...";
+
+        google.script.run
+          .withSuccessHandler(function (response) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Delete";
+            hideDeleteModal();
+
+            if (response.success) {
+              loadStudents();
+            } else {
+              alert("Error: " + response.message);
+            }
+          })
+          .withFailureHandler(function (error) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Delete";
+            alert("Failed to delete student: " + error.message);
+          })
+          .deleteStudent(deleteRowId);
+      }
+    });
+
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+</script>
