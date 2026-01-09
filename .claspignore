@@ -1,0 +1,10 @@
+node_modules/
+.git/
+package.json
+pnpm-lock.yaml
+tsconfig.json
+.clasp.json
+.clasp.json.example
+.gitignore
+README.md
+*.md

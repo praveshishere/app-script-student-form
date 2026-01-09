@@ -12,19 +12,7 @@ const SpreadSheetName = "StudentsDB"
 const StudentSpreadSheetId = "18wTjWo-UsG7pX5wxfmtsbwDbBUGZb3xVKBCbdZng1Ic";
 const StudentSheetName = "Students";
 
-function getUserIdentifier() {
-  const email = Session.getActiveUser().getEmail();
-
-  if (email && email.includes('@')) {
-    return email;
-  }
-
-  // fallback
-  return Session.getTemporaryActiveUserKey();
-}
-
 function getOrCreateSpreadSheet(spreadSheetName) {
-  const userKey = getUserIdentifier();
   const props = PropertiesService.getUserProperties();
 
   let sheetId = props.getProperty('SHEET_ID');
