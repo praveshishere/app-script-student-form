@@ -5,7 +5,6 @@ function doGet() {
   return HtmlService.createTemplateFromFile("index")
     .evaluate()
     .setTitle("Student Management System")
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 /**
