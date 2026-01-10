@@ -1,30 +1,50 @@
+/**
+ * Handles the GET request
+ */
 function doGet() {
   return HtmlService.createTemplateFromFile("index")
     .evaluate()
     .setTitle("Student Management System")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
+
+/**
+ * Includes the file
+ *
+ * @param {string} filename
+ */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-const SpreadSheetName = "StudentsDB"
+const SpreadSheetName = "StudentsDB";
 const StudentSheetName = "Students";
 
+/**
+ * Gets or creates a spread sheet
+ *
+ * @param {string} spreadSheetName
+ */
 function getOrCreateSpreadSheet(spreadSheetName) {
   const props = PropertiesService.getUserProperties();
 
-  let sheetId = props.getProperty('SHEET_ID');
+  let sheetId = props.getProperty("SHEET_ID");
 
   if (!sheetId) {
     const ss = SpreadsheetApp.create(spreadSheetName);
     sheetId = ss.getId();
-    props.setProperty('SHEET_ID', sheetId);
+    props.setProperty("SHEET_ID", sheetId);
   }
 
   return SpreadsheetApp.openById(sheetId);
 }
 
+/**
+ * Gets or creates a sheet in the spread sheet
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} ss
+ * @param {string} sheetName
+ */
 function getOrCreateSheet(ss, sheetName) {
   let sheet = ss.getSheetByName(sheetName);
 
@@ -35,6 +55,11 @@ function getOrCreateSheet(ss, sheetName) {
   return sheet;
 }
 
+/**
+ * Prepares the sheet by adding the header row if it doesn't exist
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ */
 function prepareSheet(sheet) {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow([
@@ -48,6 +73,9 @@ function prepareSheet(sheet) {
   }
 }
 
+/**
+ * Gets the student sheet
+ */
 function getStudentSheet() {
   const spreadSheet = getOrCreateSpreadSheet(SpreadSheetName);
 
@@ -58,6 +86,12 @@ function getStudentSheet() {
   return sheet;
 }
 
+/**
+ * Gets the row by record id
+ *
+ * @param {string} recordId
+ * @param {number} columnNumber
+ */
 function getRowByRecordId(recordId, columnNumber) {
   const sheet = getStudentSheet();
 
@@ -73,7 +107,14 @@ function getRowByRecordId(recordId, columnNumber) {
 /**
  * Updates an existing student in record
  *
- * @param {{studentId: string, firstName: string, lastName: string, email: string, course: string, dob: string}} studentData
+ * @param {{
+ *   studentId: string,
+ *   firstName: string,
+ *   lastName: string,
+ *   email: string,
+ *   course: string,
+ *   dob: string
+ * }} studentData
  */
 function updateStudent(studentData) {
   const sheet = getStudentSheet();
@@ -97,12 +138,14 @@ function updateStudent(studentData) {
 /**
  * Adds a new student to the record
  *
- * @param {Object} studentData
- * @param {string} studentData.firstName
- * @param {string} studentData.lastName
- * @param {string} studentData.email
- * @param {string} studentData.course
- * @param {string} studentData.dob
+ * @param {{
+ *   studentId: string,
+ *   firstName: string,
+ *   lastName: string,
+ *   email: string,
+ *   course: string,
+ *   dob: string
+ * }} studentData
  */
 function addStudent(studentData) {
   const sheet = getStudentSheet();
@@ -121,6 +164,11 @@ function addStudent(studentData) {
   return { success: true };
 }
 
+/**
+ * Deletes a student from the record
+ *
+ * @param {string} studentId
+ */
 function deleteStudent(studentId) {
   const sheet = getStudentSheet();
 
@@ -132,9 +180,8 @@ function deleteStudent(studentId) {
 }
 
 /**
- * Gets all students from the record
+ * Gets all students from the record as JSON string
  *
- * @returns {Array<{studentId: string, firstName: string, lastName: string, email: string, course: string, dob: string}>}
  */
 function getStudents() {
   const sheet = getStudentSheet();
@@ -162,6 +209,9 @@ function getStudents() {
   return JSON.stringify(students);
 }
 
+/**
+ * Test Function
+ */
 function main() {
   const students = getStudents();
   console.log(students, "students");
