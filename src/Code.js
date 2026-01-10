@@ -1,4 +1,4 @@
-function doGet(request) {
+function doGet() {
   return HtmlService.createTemplateFromFile("index")
     .evaluate()
     .setTitle("Student Management System")
@@ -9,7 +9,6 @@ function include(filename) {
 }
 
 const SpreadSheetName = "StudentsDB"
-const StudentSpreadSheetId = "18wTjWo-UsG7pX5wxfmtsbwDbBUGZb3xVKBCbdZng1Ic";
 const StudentSheetName = "Students";
 
 function getOrCreateSpreadSheet(spreadSheetName) {

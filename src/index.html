@@ -48,14 +48,12 @@
 
       window.navigateToDashboard = function () {
         showPage("dashboard");
-        // Reload students when navigating to dashboard
-        if (typeof loadStudents === "function") {
-          loadStudents();
-        }
+        loadStudents();
       };
 
       window.navigateToEdit = function (studentData) {
         showPage("main");
+        
         // Populate form with student data
         if (studentData) {
           fillForm(studentData);
